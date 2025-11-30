@@ -44,23 +44,41 @@ class ApiService {
     formData.append('metadata', JSON.stringify(metadataOverlays));
 
     try {
+      console.log('Uploading to:', `${API_CONFIG.BASE_URL}/upload`);
+      console.log('FormData entries:', formData);
+      
       const response = await fetch(`${API_CONFIG.BASE_URL}/upload`, {
         method: 'POST',
         body: formData,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        // Don't set Content-Type header - let the browser/React Native set it automatically
+        // with the correct boundary for multipart/form-data
       });
+
+      console.log('Response status:', response.status, response.statusText);
 
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('Response error:', errorText);
         throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
       }
 
-      return await response.json();
+      const result = await response.json();
+      console.log('Upload successful:', result);
+      return result;
     } catch (error) {
-      console.error('Upload error details:', error);
-      throw new Error(error.message || 'Network request failed');
+      console.error('Upload error details:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+        apiUrl: API_CONFIG.BASE_URL
+      });
+      
+      // Provide more specific error messages
+      if (error.message.includes('Network request failed') || error.message.includes('Failed to fetch')) {
+        throw new Error(`Cannot connect to backend at ${API_CONFIG.BASE_URL}. Make sure:\n- Backend is running\n- Using correct URL for your device (localhost for simulator, IP for physical device)`);
+      }
+      
+      throw error;
     }
   }
 

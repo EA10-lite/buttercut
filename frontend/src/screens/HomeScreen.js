@@ -136,16 +136,21 @@ const HomeScreen = () => {
     try {
       setProcessingStatus(PROCESSING_STATUS.UPLOADING);
 
+      console.log('Starting upload...', { videoUri: video?.uri, overlaysCount: overlays.length });
       const response = await ApiService.uploadVideo(video, overlays, {});
 
       setJobId(response.job_id);
       setProcessingStatus(PROCESSING_STATUS.PROCESSING);
       Alert.alert('Success', 'Video uploaded successfully. Processing...');
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('Upload error details:', error);
+      const errorMessage = error.message || 'Unknown error';
+      const errorDetails = error.toString();
+      
       Alert.alert(
         'Upload Failed',
-        'Make sure the backend server is running.\n\nError: ' + error.message
+        `Error: ${errorMessage}\n\nDetails: ${errorDetails}\n\nMake sure:\n- Backend is running on port 8000\n- You're using the correct API URL for your device`,
+        [{ text: 'OK' }]
       );
       setProcessingStatus(PROCESSING_STATUS.FAILED);
     }
