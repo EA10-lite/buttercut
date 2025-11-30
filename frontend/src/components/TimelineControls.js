@@ -14,8 +14,16 @@ const TimelineControls = ({
   const [isDragging, setIsDragging] = React.useState(false);
   const [sliderValue, setSliderValue] = React.useState(0);
 
+  // Initialize slider value from currentTime on mount
   React.useEffect(() => {
-    if (!isDragging) {
+    if (currentTime !== undefined && !isNaN(currentTime)) {
+      setSliderValue(currentTime);
+    }
+  }, []);
+
+  // Update slider value when video time changes (only when not dragging)
+  React.useEffect(() => {
+    if (!isDragging && currentTime !== undefined && !isNaN(currentTime)) {
       setSliderValue(currentTime);
     }
   }, [currentTime, isDragging]);
@@ -26,6 +34,8 @@ const TimelineControls = ({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // console.log('currentTime', currentTime);
+  // console.log('duration', duration);
   return (
     <View style={styles.container}>
       <View style={styles.controls}>
@@ -39,21 +49,9 @@ const TimelineControls = ({
 
         <View style={styles.timelineContainer}>
           <Text style={styles.timeText}>{formatTime(isDragging ? sliderValue : currentTime)}</Text>
-          <Slider
-            style={styles.slider}
-            minimumValue={0}
-            maximumValue={duration || 1}
-            value={sliderValue}
-            onSlidingStart={() => setIsDragging(true)}
-            onValueChange={(val) => {
-              setSliderValue(val);
-              onSeek(val);
-            }}
-            onSlidingComplete={() => setIsDragging(false)}
-            minimumTrackTintColor={theme.colors.primary}
-            maximumTrackTintColor={theme.colors.border}
-            thumbTintColor={theme.colors.primary}
-          />
+          <View style={styles.progressBar}>
+            <View style={[styles.progressBarFill, { width: `${(currentTime / duration) * 100}%` }]} />
+          </View>
           <Text style={styles.timeText}>{formatTime(duration)}</Text>
         </View>
       </View>
@@ -94,6 +92,17 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     fontSize: theme.fontSize.sm,
     minWidth: 40,
+  },
+  progressBar: {
+    flex: 1,
+    height: 4,
+    backgroundColor: theme.colors.background,
+    borderRadius: 2,
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: theme.colors.primary,
+    borderRadius: 2,
   },
 });
 
